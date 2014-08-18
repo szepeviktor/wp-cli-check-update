@@ -3,42 +3,42 @@
 use \WP_CLI\Utils;
 
 /**
- * Perform operations on prefixed database tables.
+ * Check for update via Github API.
  */
 class WP_CLI_Check_Update extends WP_CLI_Command {
 
-    /**
-     * Initiate a HTTP request. Cloned from commands/core.php
-     *
-     * @param string $method The request method.
-     * @param string $url The path for the request.
-     * @param array $headers The HTTP request headers (optional)
-     * @param array $options Options for Requests::get (optional)
-     */
-    private function request( $method, $url, $headers = array(), $options = array() ) {
-        // cURL can't read Phar archives
-        if ( 0 === strpos( WP_CLI_ROOT, 'phar://' ) ) {
-            $options['verify'] = sys_get_temp_dir() . '/wp-cli-cacert.pem';
+	/**
+	 * Initiate a HTTP request. Cloned from commands/core.php
+	 *
+	 * @param string $method The request method.
+	 * @param string $url The path for the request.
+	 * @param array $headers The HTTP request headers (optional)
+	 * @param array $options Options for Requests::get (optional)
+	 */
+	private function request( $method, $url, $headers = array(), $options = array() ) {
+		// cURL can't read Phar archives
+		if ( 0 === strpos( WP_CLI_ROOT, 'phar://' ) ) {
+			$options['verify'] = sys_get_temp_dir() . '/wp-cli-cacert.pem';
 
-            copy(
-                WP_CLI_ROOT . '/vendor/rmccue/requests/library/Requests/Transport/cacert.pem',
-                $options['verify']
-            );
-        }
+			copy(
+				WP_CLI_ROOT . '/vendor/rmccue/requests/library/Requests/Transport/cacert.pem',
+				$options['verify']
+			);
+		}
 
-        try {
-            return \Requests::get( $url, $headers, $options );
-        } catch( \Requests_Exception $ex ) {
-            // Handle SSL certificate issues gracefully
-            \WP_CLI::warning( $ex->getMessage() );
-            $options['verify'] = false;
-            try {
-                return \Requests::get( $url, $headers, $options );
-            } catch( \Requests_Exception $ex ) {
-                \WP_CLI::error( $ex->getMessage() );
-            }
-        }
-    }
+		try {
+			return \Requests::get( $url, $headers, $options );
+		} catch( \Requests_Exception $ex ) {
+			// Handle SSL certificate issues gracefully
+			\WP_CLI::warning( $ex->getMessage() );
+			$options['verify'] = false;
+			try {
+				return \Requests::get( $url, $headers, $options );
+			} catch( \Requests_Exception $ex ) {
+				\WP_CLI::error( $ex->getMessage() );
+			}
+		}
+}
 
 	/**
 	 * Check for update via Github API. Returns latest version if there's an update, or empty if no update available.
@@ -50,7 +50,7 @@ class WP_CLI_Check_Update extends WP_CLI_Command {
 	 *
 	 * @subcommand check-update
 	 */
-	function check_update( $_, $assoc_args ) {
+	public function __invoke( $_, $assoc_args ) {
 		$url = 'https://api.github.com/repos/wp-cli/wp-cli/releases';
 
 		$options = array(
@@ -75,22 +75,23 @@ class WP_CLI_Check_Update extends WP_CLI_Command {
 			$latest = ltrim( $latest, 'v' );
 		}
 
-		if ( isset( $assoc_args['major'] ) ) {
-			$latest_major = explode( '.', $latest );
-			$current_major = explode( '.', WP_CLI_VERSION );
 
-			if ( $latest_major[0] !== $current_major[0]
-				|| $latest_major[1] !== $current_major[1]
+		if ( isset( $assoc_args['major'] ) ) {
+			$latest_parts = explode( '.', $latest );
+			$current_parts = explode( '.', WP_CLI_VERSION );
+
+			if ( $latest_parts[0] !== $current_parts[0]
+				|| $latest_parts[1] !== $current_parts[1]
             ) {
 				WP_CLI::line( $latest );
 			}
 
-		} else {
+		} elseif ( $latest !== WP_CLI_VERSION ) {
 			WP_CLI::line( $latest );
 		}
 	}
 
 }
 
-WP_CLI::add_command( 'cli', 'check-update' );
+WP_CLI::add_command( 'cli check-update', 'WP_CLI_Check_Update' );
 
