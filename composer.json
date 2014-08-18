@@ -1,0 +1,22 @@
+{
+	"name": "szepeviktor/wp-cli-check-update",
+	"type": "command",
+	"description": "Check wp-cli version for update via Github API",
+	"keywords": ["wp-cli","check","version","update"],
+	"homepage": "https://github.com/szepeviktor/wp-cli-check-update/",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Viktor Szépe",
+			"email": "viktor@szepe.net",
+			"homepage": "http://www.online1.hu",
+			"role": "Developer"
+		}
+	],
+	"require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+    	"files": [ "wp-cli-check-update.php" ]
+    }
+}
